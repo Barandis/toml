@@ -4,6 +4,7 @@
   "description": "TOML parser for JavaScript",
   "main": "lib/toml.js",
   "scripts": {
+    "add": "npm run build && git add -A && git status",
     "clean": "rimraf dist",
     "build": "npm run clean && npm run bundle",
     "bundle:dev": "cross-env NODE_ENV=development webpack --progress --colors --config webpack.dev.js",
@@ -11,6 +12,7 @@
     "bundle": "npm run bundle:dev && npm run bundle:prod",
     "commit": "npx git-cz",
     "fix": "eslint ./src ./test --fix",
+    "git": "npm run add && npm run commit",
     "lint": "eslint ./src ./test",
     "test": "cross-env NODE_PATH=./src NODE_ENV=test mocha ./test --require config/mocha.js --reporter dot --recursive",
     "debug": "cross-env NODE_PATH=./src NODE_ENV=test DEBUG=1 mocha ./test --require config/mocha.js --reporter dot --recursive",
