@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "esnext",
+    "baseUrl": "./",
+    "paths": {
+      "test/*": ["test/*"],
+      "parser/*": ["src/parser/*"]
+    }
+  },
+  "exclude": ["node_modules", "lib"]
+}
