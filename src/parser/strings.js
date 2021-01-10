@@ -18,6 +18,7 @@ import {
   char,
   compact,
   count,
+  flat,
   hex,
   join,
   many,
@@ -134,15 +135,52 @@ const mlbContent = alt(mlbChar, newline, mlbEscapedNl)
 // The first element of the sequence (`value(opt(newline), '')`) is not
 // present in the ABNF. It implements the rule that if a newline
 // immediately follows the opening delimiter, that newline is trimmed.
-const mlBasicBody = join(compact(seq(
+const mlBasicBody = join(compact(flat(seq(
   value(opt(newline), ''),
-  join(many(mlbContent)),
-  join(many(join(bseq(mlbQuotes, join(many1(mlbContent)))))),
+  many(mlbContent),
+  many(bseq(mlbQuotes, many1(mlbContent))),
   opt(mlbQuotes),
-)))
+))))
 
 export const mlBasicString = map(between(
   mlBasicStringDelim,
   mlBasicStringDelim,
   mlBasicBody,
 ), TomlString)
+
+/*
+;; Literal String
+
+literal-string = apostrophe *literal-char apostrophe
+
+apostrophe = %x27 ; ' apostrophe
+
+literal-char = %x09 / %x20-26 / %x28-7E / non-ascii
+*/
+
+const apostrophe = char('\x27')
+const literalChar = alt(
+  char('\x09'),
+  range('\x20', '\x26'),
+  range('\x28', '\x7e'),
+  nonAscii,
+  'a literal character',
+)
+export const literalString = map(between(
+  apostrophe,
+  apostrophe,
+  join(many(literalChar)),
+), TomlString)
+
+/*
+;; Multiline Literal String
+
+ml-literal-string =
+        ml-literal-string-delim ml-literal-body ml-literal-string-delim
+ml-literal-string-delim = 3apostrophe
+ml-literal-body = *mll-content *( mll-quotes 1*mll-content ) [ mll-quotes ]
+
+mll-content = mll-char / newline
+mll-char = %x09 / %x20-26 / %x28-7E / non-ascii
+mll-quotes = 1*2apostrophe
+*/

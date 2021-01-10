@@ -6,7 +6,7 @@
 import { expect } from 'chai'
 
 import { run } from '@barandis/kessel'
-import { basicString, mlBasicString } from 'parser/strings'
+import { basicString, literalString, mlBasicString } from 'parser/strings'
 import { TomlString } from 'parser/types'
 
 function testBasic(input, value) {
@@ -17,30 +17,26 @@ function testMlBasic(input, value) {
   expect(run(mlBasicString, input)).to.deep.equal(TomlString(value))
 }
 
+function testLiteral(input, value) {
+  expect(run(literalString, input)).to.deep.equal(TomlString(value))
+}
+
 describe('TOML strings', () => {
   describe('basic string parser', () => {
     it('parses an empty string', () => {
       testBasic('""', '')
     })
     it('parses a text string', () => {
-      const input = '"This is a test string."'
-      const value = 'This is a test string.'
-      testBasic(input, value)
+      testBasic('"This is a test string."', 'This is a test string.')
     })
     it('parses simple escape sequences', () => {
-      const input = String.raw`"\b\f\n\r\t\"\\"`
-      const value = '\b\f\n\r\t"\\'
-      testBasic(input, value)
+      testBasic(String.raw`"\b\f\n\r\t\"\\"`, '\b\f\n\r\t"\\')
     })
     it('parses 4-digit hex codes', () => {
-      const input = String.raw`"\u0020\u00a7\u041f\u2608"`
-      const value = ' §П☈'
-      testBasic(input, value)
+      testBasic(String.raw`"\u0020\u00a7\u041f\u2608"`, ' §П☈')
     })
     it('parses 8-digit hex codes', () => {
-      const input = String.raw`"\U000000a7\U0000041f\U00002608\U000170ba"`
-      const value = '§П☈𗂺'
-      testBasic(input, value)
+      testBasic(String.raw`"\U000000a7\U0000041f\U00002608\U000170ba"`, '§П☈𗂺')
     })
   })
 
@@ -120,6 +116,24 @@ multi-line string."""`,
       testMlBasic(
         '""""This," she said, "is just a pointless statement.""""',
         '"This," she said, "is just a pointless statement."',
+      )
+    })
+  })
+
+  describe('literal string parser', () => {
+    it('parses an empty string', () => {
+      testLiteral("''", '')
+    })
+    it('ignores escape characters', () => {
+      testLiteral(
+        String.raw`'C:\Users\nodejs\templates'`,
+        'C:\\Users\\nodejs\\templates',
+      )
+    })
+    it('allows embedded quotes without escaping', () => {
+      testLiteral(
+        String.raw`'Charles L. "Sonny" Liston'`,
+        'Charles L. "Sonny" Liston',
       )
     })
   })
