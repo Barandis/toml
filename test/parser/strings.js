@@ -13,7 +13,7 @@ function test(input, value) {
   expect(run(string, input)).to.deep.equal(TomlString(value))
 }
 
-describe('TOML strings', () => {
+describe('TOML string parsers', () => {
   describe('basic string parser', () => {
     it('parses an empty string', () => {
       test('""', '')

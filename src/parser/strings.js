@@ -5,13 +5,12 @@
 
 /* eslint max-len: ["error", { code: 80, comments: 80 }] */
 
-import { newline, nonAscii, ws, wschar } from './common'
+import { flatjoin, newline, nonAscii, ws, wschar } from './common'
 import { TomlString } from './types'
 
 import {
-  alt, attempt, bcount, between, bleft, bseq, char, compact, count, flat,
-  hex, join, many, many1, map, not, oneof, opt, peek, range,
-  right, seq, value,
+  alt, attempt, bcount, between, bleft, bseq, char, count, hex, join,
+  many, many1, map, not, oneof, opt, peek, range, right, seq, value,
 } from '@barandis/kessel'
 
 /*
@@ -49,11 +48,13 @@ const escapes = {
   '\\': '\\',
 }
 
+const HEXDIG = hex()
+
 const escape = char('\x5c')
 const escapeSeqChar = alt(
   oneof('\x22\x5c\x62\x66\x6e\x72\x74'),
-  join(seq(char('\x75'), join(count(hex(), 4)))),
-  join(seq(char('\x55'), join(count(hex(), 8)))),
+  flatjoin(seq(char('\x75'), count(HEXDIG, 4))),
+  flatjoin(seq(char('\x55'), count(HEXDIG, 8))),
 )
 const escaped = map(right(escape, escapeSeqChar), x => {
   if (x.length > 1) {
@@ -115,12 +116,12 @@ const mlbContent = alt(mlbChar, newline, mlbEscapedNl)
 // The first element of the sequence (`value(opt(newline), '')`) is not
 // present in the ABNF. It implements the rule that if a newline
 // immediately follows the opening delimiter, that newline is trimmed.
-const mlBasicBody = join(compact(flat(seq(
+const mlBasicBody = flatjoin(seq(
   value(opt(newline), ''),
   many(mlbContent),
   many(bseq(mlbQuotes, many1(mlbContent))),
   opt(mlbQuotes),
-))))
+))
 
 const mlBasicString = between(
   mlBasicStringDelim,
@@ -179,12 +180,12 @@ const mllQuotes = alt(
 const mllChar = literalChar
 const mllContent = alt(mllChar, newline)
 
-const mlLiteralBody = join(compact(flat(seq(
+const mlLiteralBody = flatjoin(seq(
   value(opt(newline), ''),
   many(mllContent),
   many(bseq(mllQuotes, many1(mllContent))),
   opt(mllQuotes),
-))))
+))
 
 const mlLiteralString = between(
   mlLiteralStringDelim,

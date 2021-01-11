@@ -3,7 +3,11 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { alt, char, many, oneof, range, str } from '@barandis/kessel'
+import {
+  alt, char, flat, join, many, oneof, range, str,
+} from '@barandis/kessel'
+
+export const flatjoin = p => join(flat(p))
 
 /*
 ;; Whitespace

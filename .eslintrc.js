@@ -3,7 +3,7 @@ const ERROR = 2
 
 module.exports = {
   env: {
-    es6: true,
+    es2020: true,
     node: true,
     mocha: true,
     browser: true,
