@@ -6,80 +6,72 @@
 import { expect } from 'chai'
 
 import { run } from '@barandis/kessel'
-import { basicString, literalString, mlBasicString } from 'parser/strings'
+import { string } from 'parser/strings'
 import { TomlString } from 'parser/types'
 
-function testBasic(input, value) {
-  expect(run(basicString, input)).to.deep.equal(TomlString(value))
-}
-
-function testMlBasic(input, value) {
-  expect(run(mlBasicString, input)).to.deep.equal(TomlString(value))
-}
-
-function testLiteral(input, value) {
-  expect(run(literalString, input)).to.deep.equal(TomlString(value))
+function test(input, value) {
+  expect(run(string, input)).to.deep.equal(TomlString(value))
 }
 
 describe('TOML strings', () => {
   describe('basic string parser', () => {
     it('parses an empty string', () => {
-      testBasic('""', '')
+      test('""', '')
     })
     it('parses a text string', () => {
-      testBasic('"This is a test string."', 'This is a test string.')
+      test('"This is a test string."', 'This is a test string.')
     })
     it('parses simple escape sequences', () => {
-      testBasic(String.raw`"\b\f\n\r\t\"\\"`, '\b\f\n\r\t"\\')
+      test(String.raw`"\b\f\n\r\t\"\\"`, '\b\f\n\r\t"\\')
     })
     it('parses 4-digit hex codes', () => {
-      testBasic(String.raw`"\u0020\u00a7\u041f\u2608"`, ' §П☈')
+      test(String.raw`"\u0020\u00a7\u041f\u2608"`, ' §П☈')
     })
     it('parses 8-digit hex codes', () => {
-      testBasic(String.raw`"\U000000a7\U0000041f\U00002608\U000170ba"`, '§П☈𗂺')
+      test(String.raw`"\U000000a7\U0000041f\U00002608\U000170ba"`, '§П☈𗂺')
     })
   })
 
   describe('multi-line basic string parser', () => {
     it('parses an empty string', () => {
-      testMlBasic('""""""', '')
+      test('""""""', '')
     })
     it('parses a string of one quote', () => {
-      testMlBasic('"""""""', '"')
+      test('"""""""', '"')
     })
     it('parses a string of two quotes', () => {
-      testMlBasic('""""""""', '""')
+      test('""""""""', '""')
     })
     it('parses a text string', () => {
-      testMlBasic('"""This is a test string."""', 'This is a test string.')
+      test('"""This is a test string."""', 'This is a test string.')
     })
     it('parses simple escape sequences', () => {
-      testMlBasic(String.raw`"""\b\f\n\r\t\"\\"""`, '\b\f\n\r\t"\\')
+      test(String.raw`"""\b\f\n\r\t\"\\"""`, '\b\f\n\r\t"\\')
     })
     it('parses 4-digit hex codes', () => {
-      testMlBasic(String.raw`"""\u0020\u00a7\u041f\u2608"""`, ' §П☈')
+      test(String.raw`"""\u0020\u00a7\u041f\u2608"""`, ' §П☈')
     })
     it('parses 8-digit hex codes', () => {
-      testMlBasic(
+      test(
         String.raw`"""\U000000a7\U0000041f\U00002608\U000170ba"""`, '§П☈𗂺',
       )
     })
     it('parses multi-line strings', () => {
-      testMlBasic(
+      test(
         String.raw`"""This is a
                    multi-line string."""`,
         'This is a\n                   multi-line string.',
       )
     })
     it('parses multi-line strings with escaped newlines', () => {
-      testMlBasic(
+      test(
         String.raw`"""This is a \
                    multi-line string."""`,
         'This is a multi-line string.',
       )
     })
     it('collapses multiple empty lines after escaped newline', () => {
-      testMlBasic(
+      test(
         String.raw`"""This is a \
 
 
@@ -88,7 +80,7 @@ describe('TOML strings', () => {
       )
     })
     it('trims a newline immediately following the opening delimiter', () => {
-      testMlBasic(
+      test(
         String.raw`"""
 This is a
 multi-line string."""`,
@@ -96,24 +88,24 @@ multi-line string."""`,
       )
     })
     it('allows the embedding of single or double quotation marks', () => {
-      testMlBasic(
+      test(
         String.raw`"""Here are two quotation marks: "". Simple enough."""`,
         'Here are two quotation marks: "". Simple enough.',
       )
     })
     it('allows the embedding of three or more quotes with escapes', () => {
-      testMlBasic(
+      test(
         String.raw`"""Here are three quotation marks: ""\"."""`,
         'Here are three quotation marks: """.',
       )
-      testMlBasic(
+      test(
         String.raw`"""Here are fifteen quotation marks: \
                    ""\"""\"""\"""\"""\"."""`,
         'Here are fifteen quotation marks: """"""""""""""".',
       )
     })
     it('will accept embedded quotes immediately inside delimiters', () => {
-      testMlBasic(
+      test(
         '""""This," she said, "is just a pointless statement.""""',
         '"This," she said, "is just a pointless statement."',
       )
@@ -122,18 +114,63 @@ multi-line string."""`,
 
   describe('literal string parser', () => {
     it('parses an empty string', () => {
-      testLiteral("''", '')
+      test("''", '')
     })
     it('ignores escape characters', () => {
-      testLiteral(
+      test(
         String.raw`'C:\Users\nodejs\templates'`,
         'C:\\Users\\nodejs\\templates',
       )
     })
     it('allows embedded quotes without escaping', () => {
-      testLiteral(
+      test(
         String.raw`'Charles L. "Sonny" Liston'`,
         'Charles L. "Sonny" Liston',
+      )
+    })
+  })
+
+  describe('multi-line literal string parser', () => {
+    it('parses an empty string', () => {
+      test("''''''", '')
+    })
+    it('parses a string of one apostrophe', () => {
+      test("'''''''", "'")
+    })
+    it('parses a string of two apostrophes', () => {
+      test("''''''''", "''")
+    })
+    it('parses a text string', () => {
+      test("'''This is a text string.'''", 'This is a text string.')
+    })
+    it('ignores escape sequences', () => {
+      test(
+        String.raw`'''I [dw]on't need \d{2} apples'''`,
+        "I [dw]on't need \\d{2} apples",
+      )
+    })
+    it('parses multi-line strings', () => {
+      test(
+        String.raw`'''
+The first newline is
+trimmed in raw strings.
+   All other whitespace
+   is preserved.
+'''`,
+        'The first newline is\ntrimmed in raw strings.\n   '
+          + 'All other whitespace\n   is preserved.\n',
+      )
+    })
+    it('allows quotes without escaping', () => {
+      test(
+        String.raw`'''Here are fifteen quotation marks: """""""""""""""'''`,
+        'Here are fifteen quotation marks: """""""""""""""',
+      )
+    })
+    it('allows embedded single- and double-apostrophes', () => {
+      test(
+        "''''That,' she said, 'is still pointless.''''",
+        "'That,' she said, 'is still pointless.'",
       )
     })
   })

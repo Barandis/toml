@@ -9,29 +9,9 @@ import { newline, nonAscii, ws, wschar } from './common'
 import { TomlString } from './types'
 
 import {
-  alt,
-  attempt,
-  bcount,
-  between,
-  bleft,
-  bseq,
-  char,
-  compact,
-  count,
-  flat,
-  hex,
-  join,
-  many,
-  many1,
-  map,
-  not,
-  oneof,
-  opt,
-  peek,
-  range,
-  right,
-  seq,
-  value,
+  alt, attempt, bcount, between, bleft, bseq, char, compact, count, flat,
+  hex, join, many, many1, map, not, oneof, opt, peek, range,
+  right, seq, value,
 } from '@barandis/kessel'
 
 /*
@@ -69,7 +49,7 @@ const escapes = {
   '\\': '\\',
 }
 
-const escape = char('\\')
+const escape = char('\x5c')
 const escapeSeqChar = alt(
   oneof('\x22\x5c\x62\x66\x6e\x72\x74'),
   join(seq(char('\x75'), join(count(hex(), 4)))),
@@ -92,11 +72,11 @@ const basicUnescaped = alt(
 )
 const basicChar = alt(basicUnescaped, escaped)
 
-export const basicString = map(between(
+const basicString = between(
   quotationMark,
   quotationMark,
   join(many(basicChar)),
-), TomlString)
+)
 
 /*
 ;; Multiline Basic String
@@ -112,7 +92,7 @@ mlb-unescaped = wschar / %x21 / %x23-5B / %x5D-7E / non-ascii
 mlb-escaped-nl = escape ws newline *( wschar / newline )
 */
 
-const mlBasicStringDelim = count(quotationMark, 3)
+const mlBasicStringDelim = bcount(quotationMark, 3)
 
 const mlbEscapedNl = value(bseq(
   escape,
@@ -142,11 +122,11 @@ const mlBasicBody = join(compact(flat(seq(
   opt(mlbQuotes),
 ))))
 
-export const mlBasicString = map(between(
+const mlBasicString = between(
   mlBasicStringDelim,
   mlBasicStringDelim,
   mlBasicBody,
-), TomlString)
+)
 
 /*
 ;; Literal String
@@ -166,11 +146,11 @@ const literalChar = alt(
   nonAscii,
   'a literal character',
 )
-export const literalString = map(between(
+const literalString = between(
   apostrophe,
   apostrophe,
   join(many(literalChar)),
-), TomlString)
+)
 
 /*
 ;; Multiline Literal String
@@ -184,3 +164,43 @@ mll-content = mll-char / newline
 mll-char = %x09 / %x20-26 / %x28-7E / non-ascii
 mll-quotes = 1*2apostrophe
 */
+
+const mlLiteralStringDelim = bcount(apostrophe, 3)
+
+// Same concept as `mlbQuotes` above - the first two cases aren't in
+// the ABNF but are necessary to prevent consuming part of the ending
+// delimiter.
+const mllQuotes = alt(
+  bleft(join(bcount(apostrophe, 2)), peek(mlLiteralStringDelim)),
+  bleft(apostrophe, peek(mlLiteralStringDelim)),
+  bleft(join(bcount(apostrophe, 2)), not(apostrophe)),
+  bleft(apostrophe, not(apostrophe)),
+)
+const mllChar = literalChar
+const mllContent = alt(mllChar, newline)
+
+const mlLiteralBody = join(compact(flat(seq(
+  value(opt(newline), ''),
+  many(mllContent),
+  many(bseq(mllQuotes, many1(mllContent))),
+  opt(mllQuotes),
+))))
+
+const mlLiteralString = between(
+  mlLiteralStringDelim,
+  mlLiteralStringDelim,
+  mlLiteralBody,
+)
+
+/*
+;; String
+
+string = ml-basic-string / basic-string / ml-literal-string / literal-string
+*/
+
+export const string = map(alt(
+  mlBasicString,
+  basicString,
+  mlLiteralString,
+  literalString,
+), TomlString)
