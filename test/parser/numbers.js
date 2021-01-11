@@ -6,11 +6,15 @@
 import { expect } from 'chai'
 
 import { run } from '@barandis/kessel'
-import { integer } from 'parser/numbers'
-import { TomlInteger } from 'parser/types'
+import { float, integer } from 'parser/numbers'
+import { TomlNumber } from 'parser/types'
 
 function testInteger(input, value) {
-  expect(run(integer, input)).to.deep.equal(TomlInteger(value))
+  expect(run(integer, input)).to.deep.equal(TomlNumber(value))
+}
+
+function testFloat(input, value) {
+  expect(run(float, input)).to.deep.equal(TomlNumber(value))
 }
 
 describe('TOML number parsers', () => {
@@ -153,11 +157,11 @@ describe('TOML number parsers', () => {
       it('allows underscores to separate digits', () => {
         testInteger('0b0001_0000_0000_0000_0000_0000_0000', 16777216)
         testInteger(
-          '0b11111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111_1111',
+          '0b11111_11111111_11111111_11111111_11111111_11111111_11111111',
           9007199254740991,
         )
         testInteger(
-          '0b1000000000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000_0000',
+          '0b100000_00000000_00000000_00000000_00000000_00000000_00000000',
           9007199254740992n,
         )
       })
@@ -166,6 +170,53 @@ describe('TOML number parsers', () => {
         expect(() => run(integer, '0b_0100_0000')).to.throw()
         expect(() => run(integer, '0b0100_0000_')).to.throw()
       })
+    })
+  })
+
+  describe('float parser', () => {
+    it('parses zero', () => {
+      testFloat('0.0', 0)
+      testFloat('+0.0', 0)
+      testFloat('-0.0', -0)
+    })
+    it('parses inf and nan', () => {
+      testFloat('inf', Infinity)
+      testFloat('+inf', Infinity)
+      testFloat('-inf', -Infinity)
+      testFloat('nan', NaN)
+      testFloat('+nan', NaN)
+      testFloat('-nan', NaN)
+    })
+    it('parses non-exponential numbers', () => {
+      testFloat('+1.0', 1)
+      testFloat('3.1415', 3.1415)
+      testFloat('-0.01', -0.01)
+    })
+    it('parses exponential numbers without decimals', () => {
+      testFloat('5e+22', 5e22)
+      testFloat('1e06', 1e6)
+      testFloat('-2E-2', -2e-2)
+    })
+    it('parses exponential numbers with decimals', () => {
+      testFloat('6.626e-34', 6.626e-34)
+      testFloat('6.626e+34', 6.626e34)
+      testFloat('-6.626E-34', -6.626e-34)
+    })
+    it('requires digits on both sides of decimal points', () => {
+      expect(() => testFloat('.7')).to.throw()
+      expect(() => testFloat('7.')).to.throw()
+      expect(() => testFloat('3.e+20')).to.throw()
+    })
+    it('allows underscores for readability', () => {
+      testFloat('224_617.445_991_228', 224617.445991228)
+      testFloat('1e1_0_8', 1e108)
+    })
+    it('requires digits on both sides of an underscore', () => {
+      expect(() => testFloat('224_617._445_991_228')).to.throw()
+      expect(() => testFloat('224_617_.445_991_228')).to.throw()
+      expect(() => testFloat('224__617.445_991_228')).to.throw()
+      expect(() => testFloat('_224_617.445_991_228')).to.throw()
+      expect(() => testFloat('224_617.445_991_228_')).to.throw()
     })
   })
 })

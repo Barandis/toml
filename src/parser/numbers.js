@@ -3,14 +3,18 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { TomlInteger } from './types'
+import { TomlNumber } from './types'
 import { flatjoin } from './common'
 
 import {
   alt,
+  bpipe,
+  bseq,
   char,
   digit,
   hex,
+  ichar,
+  join,
   many,
   many1,
   map,
@@ -23,6 +27,7 @@ import {
   seq,
   skip,
   str,
+  value,
 } from '@barandis/kessel'
 
 function makeInteger(num, radix) {
@@ -76,7 +81,7 @@ const octPrefix = str('0o')
 const binPrefix = str('0b')
 
 const unsignedDecInt = alt(
-  flatjoin(seq(digit19, many1(alt(DIGIT, right(underscore, DIGIT))))),
+  flatjoin(bseq(digit19, many1(alt(DIGIT, right(underscore, DIGIT))))),
   DIGIT,
 )
 const decInt = pipe(
@@ -103,4 +108,48 @@ const binInt = map(flatjoin(seq(
   many(alt(digit01, right(underscore, digit01))),
 )), n => makeInteger(n, 2))
 
-export const integer = map(alt(hexInt, octInt, binInt, decInt), TomlInteger)
+export const integer = map(alt(hexInt, octInt, binInt, decInt), TomlNumber)
+
+/*
+;; Float
+
+float = float-int-part ( exp / frac [ exp ] )
+float =/ special-float
+
+float-int-part = dec-int
+frac = decimal-point zero-prefixable-int
+decimal-point = %x2E               ; .
+zero-prefixable-int = DIGIT *( DIGIT / underscore DIGIT )
+
+exp = "e" float-exp-part
+float-exp-part = [ minus / plus ] zero-prefixable-int
+
+special-float = [ minus / plus ] ( inf / nan )
+inf = %x69.6e.66  ; inf
+nan = %x6e.61.6e  ; nan
+*/
+
+const inf = str('inf')
+const nan = str('nan')
+const specialFloat = alt(
+  bpipe(opt(alt(plus, minus)), inf, (s, _) => s === '-' ? -Infinity : Infinity),
+  value(bseq(opt(alt(plus, minus)), nan), NaN),
+)
+
+const zeroPrefixableInt = flatjoin(seq(
+  DIGIT,
+  many(alt(DIGIT, right(underscore, DIGIT))),
+))
+const floatExpPart = join(seq(opt(alt(minus, plus)), zeroPrefixableInt))
+const exp = join(seq(ichar('e'), floatExpPart))
+
+const decimalPoint = char('.')
+const frac = join(seq(decimalPoint, zeroPrefixableInt))
+// This is NOT assigned simply dec-int as in the ABNF because our decInt
+// translates into a number, which we don't want at this stage
+const floatIntPart = flatjoin(bseq(opt(alt(minus, plus)), unsignedDecInt))
+
+export const float = map(alt(
+  map(flatjoin(seq(floatIntPart, alt(exp, seq(frac, opt(exp))))), Number),
+  specialFloat,
+), TomlNumber)

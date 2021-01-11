@@ -3,20 +3,14 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { integer } from './numbers'
-
-export const COMMENT = 'COMMENT'
 export const STRING = 'STRING'
+export const NUMBER = 'NUMBER'
 
-export const TomlComment = value => ({
-  type: COMMENT,
-  value,
-})
 export const TomlString = value => ({
   type: STRING,
   value,
 })
-export const TomlInteger = value => ({
-  type: integer,
+export const TomlNumber = value => ({
+  type: NUMBER,
   value,
 })
