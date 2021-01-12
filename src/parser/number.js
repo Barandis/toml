@@ -4,30 +4,11 @@
 // https://opensource.org/licenses/MIT
 
 import { TomlNumber } from './types'
-import { flatjoin } from './common'
+import { DIGIT, flatjoin, HEXDIG } from './common'
 
 import {
-  alt,
-  bpipe,
-  bseq,
-  char,
-  digit,
-  hex,
-  ichar,
-  join,
-  many,
-  many1,
-  map,
-  octal,
-  oneof,
-  opt,
-  pipe,
-  range,
-  right,
-  seq,
-  skip,
-  str,
-  value,
+  alt, bpipe, bseq, char, ichar, join, many, many1, map, octal,
+  oneof, opt, pipe, range, right, seq, skip, str, value,
 } from '@barandis/kessel'
 
 function makeInteger(num, radix) {
@@ -65,9 +46,6 @@ hex-int = hex-prefix HEXDIG *( HEXDIG / underscore HEXDIG )
 oct-int = oct-prefix digit0-7 *( digit0-7 / underscore digit0-7 )
 bin-int = bin-prefix digit0-1 *( digit0-1 / underscore digit0-1 )
 */
-
-const DIGIT = digit()
-const HEXDIG = hex()
 
 const minus = char('\x2d')
 const plus = char('\x2b')

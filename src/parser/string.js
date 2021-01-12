@@ -5,12 +5,12 @@
 
 /* eslint max-len: ["error", { code: 80, comments: 80 }] */
 
-import { flatjoin, newline, nonAscii, ws, wschar } from './common'
+import { flatjoin, HEXDIG, newline, nonAscii, ws, wschar } from './common'
 import { TomlString } from './types'
 
 import {
-  alt, attempt, bcount, between, bleft, bseq, char, count, hex, join,
-  many, many1, map, not, oneof, opt, peek, range, right, seq, value,
+  alt, attempt, bcount, between, bleft, bseq, char, count, join, many,
+  many1, map, not, oneof, opt, peek, range, right, seq, value,
 } from '@barandis/kessel'
 
 /*
@@ -48,8 +48,6 @@ const escapes = {
   '\\': '\\',
 }
 
-const HEXDIG = hex()
-
 const escape = char('\x5c')
 const escapeSeqChar = alt(
   oneof('\x22\x5c\x62\x66\x6e\x72\x74'),
@@ -73,7 +71,7 @@ const basicUnescaped = alt(
 )
 const basicChar = alt(basicUnescaped, escaped)
 
-const basicString = between(
+export const basicString = between(
   quotationMark,
   quotationMark,
   join(many(basicChar)),
@@ -123,7 +121,7 @@ const mlBasicBody = flatjoin(seq(
   opt(mlbQuotes),
 ))
 
-const mlBasicString = between(
+export const mlBasicString = between(
   mlBasicStringDelim,
   mlBasicStringDelim,
   mlBasicBody,
@@ -147,7 +145,7 @@ const literalChar = alt(
   nonAscii,
   'a literal character',
 )
-const literalString = between(
+export const literalString = between(
   apostrophe,
   apostrophe,
   join(many(literalChar)),
@@ -187,7 +185,7 @@ const mlLiteralBody = flatjoin(seq(
   opt(mllQuotes),
 ))
 
-const mlLiteralString = between(
+export const mlLiteralString = between(
   mlLiteralStringDelim,
   mlLiteralStringDelim,
   mlLiteralBody,

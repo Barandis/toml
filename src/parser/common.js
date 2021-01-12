@@ -4,7 +4,7 @@
 // https://opensource.org/licenses/MIT
 
 import {
-  alt, char, flat, join, many, oneof, range, str,
+  alt, char, digit, flat, hex, join, letter, many, oneof, range, str,
 } from '@barandis/kessel'
 
 export const flatjoin = p => join(flat(p))
@@ -45,3 +45,15 @@ export const nonEol = alt(
   nonAscii,
   'a non-EOL character',
 )
+
+/*
+;; Built-in ABNF terms, reproduced here for clarity
+
+ALPHA = %x41-5A / %x61-7A ; A-Z / a-z
+DIGIT = %x30-39 ; 0-9
+HEXDIG = DIGIT / "A" / "B" / "C" / "D" / "E" / "F"
+*/
+
+export const ALPHA = letter()
+export const DIGIT = digit()
+export const HEXDIG = hex()

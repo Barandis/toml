@@ -6,7 +6,7 @@
 import { expect } from 'chai'
 
 import { run } from '@barandis/kessel'
-import { float, integer } from 'parser/numbers'
+import { float, integer } from 'parser/number'
 import { TomlNumber } from 'parser/types'
 
 function testInteger(input, value) {

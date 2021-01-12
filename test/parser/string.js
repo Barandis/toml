@@ -6,7 +6,7 @@
 import { expect } from 'chai'
 
 import { run } from '@barandis/kessel'
-import { string } from 'parser/strings'
+import { string } from 'parser/string'
 import { TomlString } from 'parser/types'
 
 function test(input, value) {
