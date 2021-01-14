@@ -11,13 +11,14 @@ import {
   TomlArray,
   TomlBoolean,
   TomlDateTime,
+  TomlFloat,
+  TomlInteger,
   TomlKeyval,
-  TomlNumber,
   TomlString,
 } from 'parser/types'
 
-function testArray(input, value) {
-  expect(run(array, input)).to.deep.equal(TomlArray(value))
+function testArray(input, values) {
+  expect(run(array, input)).to.deep.equal(TomlArray(values))
 }
 
 function testKeyval(input, key, value) {
@@ -68,7 +69,7 @@ describe('Collection parsers', () => {
       )
     })
     it('rejects a key if a part of it was already assigned', () => {
-      testKeyval('fruit.apple = 1', ['fruit', 'apple'], TomlNumber(1))
+      testKeyval('fruit.apple = 1', ['fruit', 'apple'], TomlInteger(1))
       failKeyval(
         'fruit.apple.smooth = true',
         'Key <fruit.apple> is already assigned',
@@ -94,7 +95,7 @@ describe('Collection parsers', () => {
       testKeyval(
         'fruit.orange = 2',
         ['fruit', 'orange'],
-        TomlNumber(2),
+        TomlInteger(2),
       )
     })
     it('lets you do goofy-looking things with numbers', () => {
@@ -109,8 +110,8 @@ describe('Collection parsers', () => {
       testArray('[\n]', [])
     })
     it('parses single value arrays', () => {
-      testArray('[1]', [TomlNumber(1)])
-      testArray('[1.729e3]', [TomlNumber(1729)])
+      testArray('[1]', [TomlInteger(1)])
+      testArray('[1.729e3]', [TomlFloat(1729)])
     })
   })
 
@@ -145,23 +146,23 @@ literal string'''`,
       testKeyval('false = false', ['false'], TomlBoolean(false))
     })
     it('parses integer values', () => {
-      testKeyval('a = 0', ['a'], TomlNumber(0))
-      testKeyval('b = -0', ['b'], TomlNumber(0))
-      testKeyval('c = 1729', ['c'], TomlNumber(1729))
-      testKeyval('d = -16777216', ['d'], TomlNumber(-16777216))
-      testKeyval('e = 9007199254740992', ['e'], TomlNumber(9007199254740992n))
+      testKeyval('a = 0', ['a'], TomlInteger(0))
+      testKeyval('b = -0', ['b'], TomlInteger(0))
+      testKeyval('c = 1729', ['c'], TomlInteger(1729))
+      testKeyval('d = -16777216', ['d'], TomlInteger(-16777216))
+      testKeyval('e = 9007199254740992', ['e'], TomlInteger(9007199254740992n))
     })
     it('parses float values', () => {
-      testKeyval('a = nan', ['a'], TomlNumber(NaN))
-      testKeyval('b = -nan', ['b'], TomlNumber(NaN))
-      testKeyval('c = inf', ['c'], TomlNumber(Infinity))
-      testKeyval('d = -inf', ['d'], TomlNumber(-Infinity))
-      testKeyval('e = 0.0', ['e'], TomlNumber(0))
-      testKeyval('f = -0.0', ['f'], TomlNumber(-0))
-      testKeyval('g = 1.729', ['g'], TomlNumber(1.729))
-      testKeyval('h = -16777216', ['h'], TomlNumber(-16777216))
-      testKeyval('i = 6.02214e23', ['i'], TomlNumber(6.02214e23))
-      testKeyval('j = 6.62607004e-34', ['j'], TomlNumber(6.62607004e-34))
+      testKeyval('a = nan', ['a'], TomlFloat(NaN))
+      testKeyval('b = -nan', ['b'], TomlFloat(NaN))
+      testKeyval('c = inf', ['c'], TomlFloat(Infinity))
+      testKeyval('d = -inf', ['d'], TomlFloat(-Infinity))
+      testKeyval('e = 0.0', ['e'], TomlFloat(0))
+      testKeyval('f = -0.0', ['f'], TomlFloat(-0))
+      testKeyval('g = 1.729', ['g'], TomlFloat(1.729))
+      testKeyval('h = -16777216.0', ['h'], TomlFloat(-16777216))
+      testKeyval('i = 6.02214e+23', ['i'], TomlFloat(6.02214e23))
+      testKeyval('j = 6.62607004e-34', ['j'], TomlFloat(6.62607004e-34))
     })
     it('parses date-time values', () => {
       testKeyval(

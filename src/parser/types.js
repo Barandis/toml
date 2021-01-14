@@ -7,16 +7,21 @@ export const ARRAY = 'ARRAY'
 export const BOOLEAN = 'BOOLEAN'
 export const COMMENT = 'COMMENT'
 export const DATETIME = 'DATETIME'
+export const FLOAT = 'FLOAT'
+export const INTEGER = 'INTEGER'
 export const KEYVAL = 'KEYVAL'
-export const NUMBER = 'NUMBER'
 export const STRING = 'STRING'
 
 export const TomlString = value => ({
   type: STRING,
   value,
 })
-export const TomlNumber = value => ({
-  type: NUMBER,
+export const TomlInteger = value => ({
+  type: INTEGER,
+  value,
+})
+export const TomlFloat = value => ({
+  type: FLOAT,
   value,
 })
 export const TomlComment = value => ({
@@ -36,7 +41,7 @@ export const TomlKeyval = (key, value) => ({
   key,
   value,
 })
-export const TomlArray = value => ({
+export const TomlArray = values => ({
   type: ARRAY,
-  value,
+  values,
 })

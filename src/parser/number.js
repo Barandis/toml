@@ -3,7 +3,7 @@
 // This software is released under the MIT License.
 // https://opensource.org/licenses/MIT
 
-import { TomlNumber } from './types'
+import { TomlFloat, TomlInteger } from './types'
 import { DIGIT, flatjoin, HEXDIG } from './common'
 
 import {
@@ -86,7 +86,7 @@ const binInt = map(flatjoin(seq(
   many(alt(digit01, right(underscore, digit01))),
 )), n => makeInteger(n, 2))
 
-export const integer = map(alt(hexInt, octInt, binInt, decInt), TomlNumber)
+export const integer = map(alt(hexInt, octInt, binInt, decInt), TomlInteger)
 
 /*
 ;; Float
@@ -130,4 +130,4 @@ const floatIntPart = flatjoin(bseq(opt(alt(minus, plus)), unsignedDecInt))
 export const float = map(alt(
   map(flatjoin(bseq(floatIntPart, alt(exp, seq(frac, opt(exp))))), Number),
   specialFloat,
-), TomlNumber)
+), TomlFloat)

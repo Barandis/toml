@@ -7,14 +7,14 @@ import { expect } from 'chai'
 
 import { run } from '@barandis/kessel'
 import { float, integer } from 'parser/number'
-import { TomlNumber } from 'parser/types'
+import { TomlFloat, TomlInteger } from 'parser/types'
 
 function testInteger(input, value) {
-  expect(run(integer, input)).to.deep.equal(TomlNumber(value))
+  expect(run(integer, input)).to.deep.equal(TomlInteger(value))
 }
 
 function testFloat(input, value) {
-  expect(run(float, input)).to.deep.equal(TomlNumber(value))
+  expect(run(float, input)).to.deep.equal(TomlFloat(value))
 }
 
 describe('TOML number parsers', () => {
