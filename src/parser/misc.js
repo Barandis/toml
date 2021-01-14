@@ -18,6 +18,7 @@ import {
   str,
   value,
 } from '@barandis/kessel'
+
 /*
 ;; Comment
 
@@ -26,7 +27,7 @@ comment-start-symbol = %x23 ; #
 comment = comment-start-symbol *non-eol
 */
 
-const commentStartSymbol = char('\x23')
+const commentStartSymbol = char('#')
 
 export const comment = map(right(
   commentStartSymbol,

@@ -128,6 +128,6 @@ const frac = join(seq(decimalPoint, zeroPrefixableInt))
 const floatIntPart = flatjoin(bseq(opt(alt(minus, plus)), unsignedDecInt))
 
 export const float = map(alt(
-  map(flatjoin(seq(floatIntPart, alt(exp, seq(frac, opt(exp))))), Number),
+  map(flatjoin(bseq(floatIntPart, alt(exp, seq(frac, opt(exp))))), Number),
   specialFloat,
 ), TomlNumber)
