@@ -151,10 +151,10 @@ const wsCommentNewline = many(alt(wschar, seq(opt(comment), newline)))
 
 const arrayValues = (function arrayValues() {
   return alt(
-    flat(bpipe(
+    bpipe(
       wsCommentNewline, val, wsCommentNewline, arraySep, lazy(arrayValues),
       (_1, value, _2, _3, array) => [value, ...array],
-    )),
+    ),
     map(second(bseq(
       wsCommentNewline, val, wsCommentNewline, opt(arraySep),
     )), value => [value]),

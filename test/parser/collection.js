@@ -109,9 +109,72 @@ describe('Collection parsers', () => {
       testArray('[   ]', [])
       testArray('[\n]', [])
     })
-    it('parses single value arrays', () => {
+    it('parses integer arrays', () => {
       testArray('[1]', [TomlInteger(1)])
+      testArray('[1, 2, 3]', [TomlInteger(1), TomlInteger(2), TomlInteger(3)])
+    })
+    it('parses float arrays', () => {
       testArray('[1.729e3]', [TomlFloat(1729)])
+      // trailing comma, newlines, comments
+      testArray(
+        `[
+          9.192631770e9,   # Hyperfine structure transition frequency of Cs-133
+          2.99792458e8,    # Speed of light in a vacuum
+          6.662607015e-34, # Planck constant
+          1.602176634e-19, # Elementary charge
+          1.380649e-23,    # Boltzmann constant
+          6.02214076e23,   # Avogadro constant
+          6.83e2,          # Luminous efficacy of 540THz monochromatic radiation
+        ]`,
+        [
+          TomlFloat(9192631770),
+          TomlFloat(299792458),
+          TomlFloat(6.662607015e-34),
+          TomlFloat(1.602176634e-19),
+          TomlFloat(1.380649e-23),
+          TomlFloat(6.02214076e23),
+          TomlFloat(683),
+        ],
+      )
+    })
+    it('parses string arrays', () => {
+      testArray('["fnord"]', [TomlString('fnord')])
+      testArray(
+        "['red', 'green', 'blue']",
+        [TomlString('red'), TomlString('green'), TomlString('blue')],
+      )
+    })
+    it('parses boolean arrays', () => {
+      testArray('[true]', [TomlBoolean(true)])
+      testArray(
+        '[true, false, true]',
+        [TomlBoolean(true), TomlBoolean(false), TomlBoolean(true)],
+      )
+    })
+    it('parses datetime arrays', () => {
+      testArray('[2021-01-14T01:32:18Z]', [TomlDateTime({
+        year: 2021,
+        month: 1,
+        day: 14,
+        hours: 1,
+        minutes: 32,
+        seconds: 18,
+        ms: 0,
+        offset: 0,
+      })])
+      testArray(
+        '[03:53:00, 1972-11-27]',
+        [
+          TomlDateTime({ hours: 3, minutes: 53, seconds: 0, ms: 0 }),
+          TomlDateTime({ year: 1972, month: 11, day: 27 }),
+        ],
+      )
+    })
+    it('parses nested arrays', () => {
+      testArray('[[1, 2], [3, 4, 5]]', [
+        TomlArray([TomlInteger(1), TomlInteger(2)]),
+        TomlArray([TomlInteger(3), TomlInteger(4), TomlInteger(5)]),
+      ])
     })
   })
 
@@ -201,6 +264,65 @@ literal string'''`,
           ms: 789,
           offset: 360,
         }),
+      )
+    })
+    it('parses array values', () => {
+      testKeyval(
+        'integers = [ 1, 2, 3 ]',
+        ['integers'],
+        TomlArray([TomlInteger(1), TomlInteger(2), TomlInteger(3)]),
+      )
+      testKeyval(
+        'colors = ["red", "green", "blue"]',
+        ['colors'],
+        TomlArray([TomlString('red'), TomlString('green'), TomlString('blue')]),
+      )
+      testKeyval(
+        'nested.array.of.int = [ [ 1, 2 ], [3, 4, 5] ]',
+        ['nested', 'array', 'of', 'int'],
+        TomlArray([
+          TomlArray([TomlInteger(1), TomlInteger(2)]),
+          TomlArray([TomlInteger(3), TomlInteger(4), TomlInteger(5)]),
+        ]),
+      )
+      testKeyval(
+        'nested.array.of.mixed = [[1, 2], ["a", "b", "c"]]',
+        ['nested', 'array', 'of', 'mixed'],
+        TomlArray([
+          TomlArray([TomlInteger(1), TomlInteger(2)]),
+          TomlArray([TomlString('a'), TomlString('b'), TomlString('c')]),
+        ]),
+      )
+      testKeyval(
+        String.raw`strs = ["all", 'strings', """are the same""", '''type''']`,
+        ['strs'],
+        TomlArray([
+          TomlString('all'),
+          TomlString('strings'),
+          TomlString('are the same'),
+          TomlString('type'),
+        ]),
+      )
+      testKeyval(
+        `constants.exact = [
+          9.192631770e9,   # Hyperfine structure transition frequency of Cs-133
+          2.99792458e8,    # Speed of light in a vacuum
+          6.662607015e-34, # Planck constant
+          1.602176634e-19, # Elementary charge
+          1.380649e-23,    # Boltzmann constant
+          6.02214076e23,   # Avogadro constant
+          6.83e2,          # Luminous efficacy of 540THz monochromatic radiation
+        ]`,
+        ['constants', 'exact'],
+        TomlArray([
+          TomlFloat(9192631770),
+          TomlFloat(299792458),
+          TomlFloat(6.662607015e-34),
+          TomlFloat(1.602176634e-19),
+          TomlFloat(1.380649e-23),
+          TomlFloat(6.02214076e23),
+          TomlFloat(683),
+        ]),
       )
     })
   })
